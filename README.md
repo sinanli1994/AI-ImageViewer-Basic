@@ -1,29 +1,50 @@
-# AI Image Viewer - Basic Version
+# AI Image Viewer – Basic
 
-A lightweight, local image viewer with metadata inspection capabilities.
+A minimal offline viewer for AI-generated image metadata.
+
+Open an image and instantly view its prompt and generation parameters.
+
+---
 
 ## Features
-- Fast image viewing (drag & drop support).
-- Inspect metadata for AI-generated images (ComfyUI, Stable Diffusion).
-- Clean and simple interface.
+
+- Drag & drop image support
+- View embedded metadata (ComfyUI, Stable Diffusion)
+- Clean and distraction-free interface
+- Fully offline – no telemetry, no internet connection required
+
+---
 
 ## Installation
 
-1.  Clone the repository.
-2.  Install dependencies:
-    ```bash
-    pip install -r requirements.txt
-    ```
+Clone the repository and install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+---
 
 ## Usage
 
 Run the application:
+
 ```bash
 python main.py
 ```
 
-## Packaging
+---
+
+## Build Executable (Optional)
+
 To create a standalone executable:
+
 ```bash
 pyinstaller --noconsole --onefile --icon=app.ico --add-data "app.ico;." --version-file=version.txt --name=AI_ImageViewer_Basic main.py
 ```
+
+---
+
+If you find this tool useful, you can support future development:
+
+☕ https://buymeacoffee.com/creativelax
