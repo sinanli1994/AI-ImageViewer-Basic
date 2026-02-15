@@ -6,6 +6,14 @@ Open an image and instantly view its prompt and generation parameters.
 
 ---
 
+## Download
+
+Prebuilt Windows executable is available on the Releases page:
+
+https://github.com/sinanli1994/AI-ImageViewer-Basic/releases
+
+---
+
 ## Features
 
 - Drag & drop image support
@@ -15,7 +23,7 @@ Open an image and instantly view its prompt and generation parameters.
 
 ---
 
-## Installation
+## Installation (Source)
 
 Clone the repository and install dependencies:
 
