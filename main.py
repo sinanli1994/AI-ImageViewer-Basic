@@ -15,7 +15,7 @@ from PyQt6.QtGui import (
     QImage, QResizeEvent, QColor, QPainter,
     QShortcut, QKeySequence
 )
-from PyQt6.QtCore import Qt, QSize, QTimer, QUrl
+from PyQt6.QtCore import Qt, QSize, QTimer, QUrl, QSettings
 
 # --- 异常捕获 ---
 def exception_hook(exctype, value, tb):
@@ -74,7 +74,7 @@ TRANSLATIONS = {
         'open_file': "Open Image",
         'clear': "Clear All",
         'theme': "Theme",
-        'lang_btn': "中文",
+        'lang_btn': "Language",
         'drag_hint': "Drop image here to view",
         'preview': "Preview",
         'file_info': "Metadata",
@@ -99,7 +99,7 @@ TRANSLATIONS = {
         'open_file': "打开图片",
         'clear': "清空",
         'theme': "切换主题",
-        'lang_btn': "English",
+        'lang_btn': "语言",
         'drag_hint': "拖入图片查看元数据",
         'preview': "预览",
         'file_info': "元数据详情",
@@ -117,6 +117,81 @@ TRANSLATIONS = {
         'width': "宽",
         'height': "高",
         'cleared': "已清空",
+        'lora': "LoRA",
+    },
+    'tc': {
+        'title': "AI 圖片元數據查看器 (基礎版)",
+        'open_file': "打開圖片",
+        'clear': "清空",
+        'theme': "切換主題",
+        'lang_btn': "語言",
+        'drag_hint': "拖入圖片查看元數據",
+        'preview': "預覽",
+        'file_info': "元數據詳情",
+        'filename': "文件:",
+        'size': "尺寸:",
+        'model': "基礎模型",
+        'prompt': "正向提示詞",
+        'negative': "負面提示詞",
+        'params': "生成參數",
+        'copy_btn': "複製",
+        'no_data': "未檢測到元數據",
+        'no_data_desc': "該圖片可能不是原圖或已被清理信息。",
+        'comfy_err': "ComfyUI 解析錯誤",
+        'copied': "已複製！",
+        'width': "寬",
+        'height': "高",
+        'cleared': "已清空",
+        'lora': "LoRA",
+    },
+    'jp': {
+        'title': "AI 画像メタデータビューア (Basic)",
+        'open_file': "画像を開く",
+        'clear': "クリア",
+        'theme': "テーマ切替",
+        'lang_btn': "言語",
+        'drag_hint': "ここに画像をドロップ",
+        'preview': "プレビュー",
+        'file_info': "メタデータ",
+        'filename': "ファイル:",
+        'size': "サイズ:",
+        'model': "モデル",
+        'prompt': "プロンプト",
+        'negative': "ネガティブ",
+        'params': "生成パラメータ",
+        'copy_btn': "コピー",
+        'no_data': "メタデータなし",
+        'no_data_desc': "この画像には生成データが含まれていません。",
+        'comfy_err': "ComfyUI 解析エラー",
+        'copied': "コピーしました！",
+        'width': "幅",
+        'height': "高",
+        'cleared': "クリアしました",
+        'lora': "LoRA",
+    },
+    'kr': {
+        'title': "AI 이미지 메타데이터 뷰어 (Basic)",
+        'open_file': "이미지 열기",
+        'clear': "지우기",
+        'theme': "테마 변경",
+        'lang_btn': "언어",
+        'drag_hint': "이미지를 여기에 드롭하세요",
+        'preview': "미리보기",
+        'file_info': "메타데이터",
+        'filename': "파일:",
+        'size': "크기:",
+        'model': "모델",
+        'prompt': "프롬프트",
+        'negative': "네거티브",
+        'params': "생성 파라미터",
+        'copy_btn': "복사",
+        'no_data': "메타데이터 없음",
+        'no_data_desc': "이 이미지에는 생성 데이터가 포함되어 있지 않습니다.",
+        'comfy_err': "ComfyUI 파싱 오류",
+        'copied': "복사되었습니다!",
+        'width': "너비",
+        'height': "높이",
+        'cleared': "지워짐",
         'lora': "LoRA",
     }
 }
@@ -169,15 +244,17 @@ def resource_path(relative_path: str) -> str:
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.lang = 'en'
-        self.setWindowTitle("AI Image Metadata Viewer Basic v1.0.0")
+        self.settings = QSettings("AI_Tools", "AI_ImageViewer_Basic")
+        self.lang = self.settings.value("language", "en", type=str)
+        self.dark_mode = self.settings.value("theme", False, type=bool)
+
+        self.setWindowTitle("AI Image Metadata Viewer Basic v1.0.1")
         self.resize(1200, 800)
         self.setAcceptDrops(True)
         icon_path = resource_path("app.ico")
         if os.path.exists(icon_path):
             self.setWindowIcon(QIcon(icon_path))
 
-        self.dark_mode = False
         self.current_image_path = None
         self.current_pos_text = ""
         self.current_neg_text = ""
@@ -249,11 +326,37 @@ class MainWindow(QMainWindow):
         empty.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
         self.toolbar.addWidget(empty)
 
-        # 语言 / 主题 / 清空
+        # 语言 (QMenu) / 主题 / 清空
+        from PyQt6.QtWidgets import QMenu, QToolButton
+
         self.lang_action = QAction(self.tr('lang_btn'), self)
         self.lang_action.setIcon(create_emoji_icon("🌐"))
-        self.lang_action.triggered.connect(self.toggle_language)
+        
+        # 创建菜单
+        self.lang_menu = QMenu(self)
+        
+        langs = [
+            ('English', 'en'),
+            ('简体中文', 'cn'),
+            ('繁體中文', 'tc'),
+            ('日本語', 'jp'),
+            ('한국어', 'kr')
+        ]
+        
+        for label, code in langs:
+            action = QAction(label, self)
+            # 使用 lambda 传参需要注意闭包问题，用 default arg 解决
+            action.triggered.connect(lambda checked, c=code: self.set_language(c))
+            self.lang_menu.addAction(action)
+
         self.toolbar.addAction(self.lang_action)
+        
+        # 将 action 对应的 widget 设置为弹出菜单模式
+        widget = self.toolbar.widgetForAction(self.lang_action)
+        if isinstance(widget, QToolButton):
+            widget.setMenu(self.lang_menu)
+            widget.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
+
 
         self.theme_action = QAction(self.tr('theme'), self)
         self.theme_action.setIcon(create_emoji_icon("🌗"))
@@ -264,6 +367,7 @@ class MainWindow(QMainWindow):
         self.action_clear.setIcon(create_emoji_icon("🧹", color="#ff4d4f"))
         self.action_clear.triggered.connect(self.clear_all)
         self.toolbar.addAction(self.action_clear)
+
 
     # ---------- UI Setup ----------
     def setup_ui(self):
@@ -418,8 +522,9 @@ class MainWindow(QMainWindow):
         
         self.show_toast(self.tr('cleared'))
 
-    def toggle_language(self):
-        self.lang = 'cn' if self.lang == 'en' else 'en'
+    def set_language(self, lang_code):
+        self.lang = lang_code
+        self.settings.setValue("language", lang_code)
         self.update_ui_text()
 
     def update_ui_text(self):
@@ -690,6 +795,7 @@ class MainWindow(QMainWindow):
 
     def toggle_theme(self):
         self.dark_mode = not self.dark_mode
+        self.settings.setValue("theme", self.dark_mode)
         self.apply_style()
         self.update_ui_text_only()
         if self.current_image_path:
@@ -742,6 +848,20 @@ class MainWindow(QMainWindow):
             QPushButton:hover {{
                 background-color: {btn_hover};
                 color: {t['accent']};
+            }}
+            QMenu {{
+                background-color: {t['bg_panel']};
+                border: 1px solid {t['border']};
+                padding: 5px;
+            }}
+            QMenu::item {{
+                padding: 6px 20px;
+                border-radius: 4px;
+                color: {t['text_main']};
+            }}
+            QMenu::item:selected {{
+                background-color: {t['accent']};
+                color: white;
             }}
         """)
 
