@@ -18,6 +18,8 @@ https://github.com/sinanli1994/AI-ImageViewer-Basic/releases
 
 - Drag & drop image support
 - View embedded metadata (ComfyUI, Stable Diffusion)
+- Multi-language UI (English, Simplified Chinese, Traditional Chinese, Japanese, Korean)
+- Remembers language and theme settings after restart
 - Clean and distraction-free interface
 - Fully offline – no telemetry, no internet connection required
 
