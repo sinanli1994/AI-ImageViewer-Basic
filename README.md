@@ -7,6 +7,22 @@ Runs fully offline. No telemetry. No internet connection required.
 
 ---
 
+## Screenshots
+
+### Grid browsing
+
+![Grid View](screenshots/grid-view.png)
+
+### Metadata viewer
+
+![Metadata Panel](screenshots/metadata-panel.png)
+
+### Drag & drop interface
+
+![Drop Interface](screenshots/drop-view.png)
+
+---
+
 ## Download
 
 Prebuilt Windows executable is available on the Releases page:
