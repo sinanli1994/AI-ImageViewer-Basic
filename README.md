@@ -26,7 +26,7 @@ https://github.com/sinanli1994/ai-image-metadata-viewer/releases
 - Keyboard navigation (Arrow keys / Enter / Delete)
 - Safe delete (moves images to system Recycle Bin)
 
-Interface
+### Interface
 
 - Clean distraction-free UI
 - Multi-language interface
@@ -37,7 +37,7 @@ Interface
   - Korean
 - Remembers language and theme settings
 
-Privacy
+### Privacy
 
 - Fully offline
 - No telemetry
